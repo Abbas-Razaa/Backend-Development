@@ -9,8 +9,28 @@ app.get('/', function(req,res){
     res.send('Hello from server')
 })
 
-app.get('/profile', function(req,res){
+app.use(function(req,res,next){
+    console.log('middleware')
+    next();
+})
+
+
+app.use(function(req,res,next){
+    console.log('middleware again')
+    next();
+})
+
+app.get('/about', function(req,res){
     res.send('Hello from profile')
+})
+
+app.get('/profile', function(req,res,next){
+    return next(new Error('something went wrong')); //prints on console
+})
+
+app.use((err,req,res,next)=>{
+    console.error(err.stack)
+    res.status((500).send('something broken!')) // goes on frontend
 })
 
 app.listen(3000);
