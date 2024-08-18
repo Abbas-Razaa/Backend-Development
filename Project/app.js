@@ -8,9 +8,11 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const path = require('path');
 const multer = require('multer');
+const upload = require('./config/multerconfig');
 
 app.set('view engine', 'ejs');
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
@@ -31,16 +33,19 @@ app.get('/', (req, res) => {
     res.render('index');
 });
 
-app.get('/test', (req, res) => {
-    res.render('test');
+app.get('/profile/upload', (req, res) => {
+    res.render('profileupload');
 });
 
-app.post('/upload', upload.single('image') ,(req, res) => {
-    console.log(req.body);
+app.post('/upload', isLoggenIn, upload.single('image'), async(req, res) => {
+    let user = await userModel.findOne({email: req.user.email});
+    user.profilepic = req.file.filename;
+    await user.save();
+    res.redirect('/profile');
 });
 
-app.get('/profile', isLoggedIn, (req,res) => {
-    let user = userModel.findOne({email: req.user.email}).populate('posts');
+app.get('/profile', isLoggedIn , async (req,res) => {
+    let user = await userModel.findOne({email: req.user.email}).populate('posts');
     res.render('profile', {user});
 })
 
